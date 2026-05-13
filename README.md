@@ -29,11 +29,11 @@ A smart web tool that helps consumers make safer and informed food choices by sc
 - **Educational Learn Section** covering complete syllabus (Unit I to V)
 
 ###  Additional Features
-- User preference filters (Vegetarian, Allergies, etc.)
-- Product alternatives suggestions
-- Scan History (saved in browser)
-- Responsive Web Design (works great on mobile)
-- Syllabus-to-Feature Mapping
+- [ ] User preference filters (Vegetarian, Allergies, etc.)
+- [ ] Product alternatives suggestions
+- [ ] Scan History (saved in browser)
+- [ ] Responsive Web Design (works great on mobile)
+- [ ] Syllabus-to-Feature Mapping
 
 ---
 
@@ -48,19 +48,19 @@ A smart web tool that helps consumers make safer and informed food choices by sc
 ---
 ## Methodology
 
--Rapid prototyping using Google Antigravity
--Syllabus-driven development
--Rule-based intelligent scoring system
--User-centric design focused on Indian consumers
+- Rapid prototyping <br>
+- Syllabus-driven development<br>
+- Rule-based intelligent scoring system<br>
+- User-centric design focused on Indian consumers<br>
 
 
 ## Future Enhancements
 
--Real-time OCR & Barcode scanning
--AI Chatbot for food safety queries
--Integration with FSSAI database
--PWA (Progressive Web App) support
--User accounts & cloud features
+- [ ] Real-time OCR & Barcode scanning<br>
+- [ ] AI Chatbot for food safety queries<br>
+- [ ] Integration with FSSAI database<br>
+- [ ] PWA (Progressive Web App) support<br>
+- [ ] User accounts & cloud features<br>
 
 ## 🚀 How to Run Locally
 
@@ -69,7 +69,6 @@ git clone <repo-url>
 cd safebite-india
 npm install
 npm run dev
-
----
+```
 
 Made with ❤️ for better food safety awareness in India
