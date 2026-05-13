@@ -140,6 +140,16 @@ export default function ResultsPage() {
           fssaiNumber={result.fssaiNumber}
         />
 
+        {/* AI-Powered Insights Paragraph */}
+        <div className="bg-amber-50/50 border border-amber-100 rounded-[32px] p-8 md:p-10 space-y-4">
+          <h3 className="text-sm font-black uppercase tracking-widest text-amber-600 flex items-center gap-2">
+            <AlertCircle className="h-4 w-4" /> AI-Powered Safety Insights
+          </h3>
+          <p className="text-xl md:text-2xl font-medium text-slate-800 leading-relaxed italic">
+            "{result.aiInsights}"
+          </p>
+        </div>
+
         {/* Main Grid: Nutrition & Ingredients */}
         <div className="grid lg:grid-cols-2 gap-8">
           <div className="space-y-8">

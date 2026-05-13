@@ -51,19 +51,43 @@ export function scoreNutrition(text: string, nutritionFacts?: any): { score: num
 
   // RULE: Nutrition fact adjustments
   if (nutritionFacts) {
+    // Heavy Penalty for Trans Fat (Syllabus: Hazards of Trans Fats)
+    if (nutritionFacts.transFat > 2) {
+      score -= 40;
+      flags.push({ ingredient: 'Trans Fat', reason: `EXTREME RISK: Contains ${nutritionFacts.transFat}g trans fat. High risk of cardiovascular diseases.`, severity: 'danger' });
+    } else if (nutritionFacts.transFat > 0) {
+      score -= 25;
+      flags.push({ ingredient: 'Trans Fat', reason: 'Contains trans fats. FSSAI recommends zero intake.', severity: 'danger' });
+    }
+
     if (nutritionFacts.sugar > 20) { score -= 15; flags.push({ ingredient: 'Sugar', reason: 'Very high sugar content (>20g)', severity: 'danger' }); }
     else if (nutritionFacts.sugar > 10) { score -= 8; flags.push({ ingredient: 'Sugar', reason: 'High sugar content (>10g)', severity: 'warning' }); }
     
-    if (nutritionFacts.sodium > 800) { score -= 15; flags.push({ ingredient: 'Sodium', reason: 'Very high sodium (>800mg)', severity: 'danger' }); }
-    else if (nutritionFacts.sodium > 400) { score -= 8; flags.push({ ingredient: 'Sodium', reason: 'High sodium (>400mg)', severity: 'warning' }); }
+    // High Sodium Penalty
+    if (nutritionFacts.sodium > 400) { 
+      score -= 20; 
+      flags.push({ ingredient: 'Sodium', reason: `High sodium (${nutritionFacts.sodium}mg). May impact blood pressure.`, severity: 'danger' }); 
+    }
+    else if (nutritionFacts.sodium > 200) { 
+      score -= 10; 
+      flags.push({ ingredient: 'Sodium', reason: 'Moderate sodium content.', severity: 'warning' }); 
+    }
     
     if (nutritionFacts.saturatedFat > 10) { score -= 12; flags.push({ ingredient: 'Saturated Fat', reason: 'High saturated fat (>10g)', severity: 'warning' }); }
     
-    if (nutritionFacts.fat > 0 && nutritionFacts.fat < 0.5) { /* trans fat check would go here if specific field existed */ }
-    
     if (nutritionFacts.protein >= 10) { score += 10; flags.push({ ingredient: 'Protein', reason: 'Good protein source', severity: 'info' }); }
-    if (nutritionFacts.fibre >= 5) { score += 10; flags.push({ ingredient: 'Fibre', reason: 'High fibre content', severity: 'info' }); }
+    
+    // Fiber/Sugar Balance
+    if (nutritionFacts.fibre < 2 && nutritionFacts.sugar > 5) {
+      score -= 10;
+      flags.push({ ingredient: 'Nutritional Balance', reason: 'Low fibre with moderate sugar leads to rapid glucose spikes.', severity: 'warning' });
+    } else if (nutritionFacts.fibre >= 5) { 
+      score += 10; 
+      flags.push({ ingredient: 'Fibre', reason: 'High fibre content beneficial for gut health.', severity: 'info' }); 
+    }
+
     if (nutritionFacts.calories > 500) { score -= 8; flags.push({ ingredient: 'Calories', reason: 'High calorie density (>500kcal)', severity: 'warning' }); }
+    else if (nutritionFacts.calories > 250) { score -= 4; flags.push({ ingredient: 'Calories', reason: 'Moderate calorie content per serving.', severity: 'info' }); }
   }
 
   // RULE: Label claim bonuses
@@ -304,6 +328,7 @@ export function computeScores(labelText: string, aiResponse?: AIAnalysisResponse
     rawLabel: labelText,
     analyzedAt: new Date().toISOString(),
     summary: `Analyzed against FSSAI 2024 standards. Overall safety rating is ${getScoreLevel(overallScore).toUpperCase()}.`,
+    aiInsights: aiResponse?.aiInsights || `This product received a ${getScoreLevel(overallScore)} rating based on its nutritional profile and ingredient quality. Review the detailed breakdown for specific concerns regarding additives or processing levels.`,
     extractedIngredients: aiResponse?.extractedIngredients || [],
     nutritionFacts: aiResponse?.nutritionFacts || {},
     detectedEcodes: aiResponse?.detectedEcodes || [],

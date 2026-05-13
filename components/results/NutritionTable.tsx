@@ -1,6 +1,7 @@
 // SafeBite India — components/results/NutritionTable.tsx
 import React from 'react';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { cn } from "@/lib/utils";
 
 interface NutritionFacts {
   calories?: number;
@@ -9,6 +10,7 @@ interface NutritionFacts {
   sugar?: number;
   fat?: number;
   saturatedFat?: number;
+  transFat?: number;
   sodium?: number;
   fibre?: number;
 }
@@ -26,6 +28,7 @@ export default function NutritionTable({ facts }: NutritionTableProps) {
     { label: '  Dietary Fibre', value: facts.fibre, unit: 'g', indent: true },
     { label: 'Total Fat', value: facts.fat, unit: 'g' },
     { label: '  Saturated Fat', value: facts.saturatedFat, unit: 'g', indent: true },
+    { label: '  Trans Fat', value: facts.transFat, unit: 'g', indent: true, hazard: (facts.transFat || 0) > 0 },
     { label: 'Sodium', value: facts.sodium, unit: 'mg' },
   ].filter(r => r.value !== undefined);
 
@@ -49,10 +52,16 @@ export default function NutritionTable({ facts }: NutritionTableProps) {
           <TableBody>
             {rows.map((row, i) => (
               <TableRow key={i} className="hover:bg-slate-50/50">
-                <TableCell className={`${row.indent ? 'pl-8 text-slate-500 italic' : 'font-medium text-slate-700'}`}>
+                <TableCell className={cn(
+                  row.indent ? 'pl-8 text-slate-500 italic' : 'font-medium text-slate-700',
+                  (row as any).hazard && 'text-red-600 font-black not-italic'
+                )}>
                   {row.label}
                 </TableCell>
-                <TableCell className="text-right font-bold text-slate-900">
+                <TableCell className={cn(
+                  "text-right font-bold text-slate-900",
+                  (row as any).hazard && 'text-red-600'
+                )}>
                   {row.value}{row.unit}
                 </TableCell>
               </TableRow>

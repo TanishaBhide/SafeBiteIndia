@@ -86,9 +86,11 @@ export interface AnalysisResult {
     sugar?: number;
     fat?: number;
     saturatedFat?: number;
+    transFat?: number;
     sodium?: number;
     fibre?: number;
   };
+  aiInsights: string;
   detectedEcodes: string[];
   detectedAllergens: string[];
   isGMO: boolean;
@@ -112,9 +114,11 @@ export interface AIAnalysisResponse {
     sugar?: number;
     fat?: number;
     saturatedFat?: number;
+    transFat?: number;
     sodium?: number;
     fibre?: number;
   };
+  aiInsights: string;
   detectedEcodes: string[];
   detectedAllergens: string[];
   isGMO: boolean;
