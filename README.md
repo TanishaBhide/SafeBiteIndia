@@ -46,6 +46,21 @@ A smart web tool that helps consumers make safer and informed food choices by sc
 - **Deployment**: Vercel
 
 ---
+## Methodology
+
+-Rapid prototyping using Google Antigravity
+-Syllabus-driven development
+-Rule-based intelligent scoring system
+-User-centric design focused on Indian consumers
+
+
+## Future Enhancements
+
+-Real-time OCR & Barcode scanning
+-AI Chatbot for food safety queries
+-Integration with FSSAI database
+-PWA (Progressive Web App) support
+-User accounts & cloud features
 
 ## 🚀 How to Run Locally
 
@@ -56,22 +71,5 @@ npm install
 npm run dev
 
 ---
-
---> Methodology
-
--Rapid prototyping using Google Antigravity
--Syllabus-driven development
--Rule-based intelligent scoring system
--User-centric design focused on Indian consumers
-
-
---> Future Enhancements
-
--Real-time OCR & Barcode scanning
--AI Chatbot for food safety queries
--Integration with FSSAI database
--PWA (Progressive Web App) support
--User accounts & cloud features
-
 
 Made with ❤️ for better food safety awareness in India
