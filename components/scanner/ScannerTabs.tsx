@@ -1,4 +1,4 @@
-// SafeBite India — components/scanner/ScannerTabs.tsx — Mode switcher with OCR + Manual Review
+// SafeBite India — components/scanner/ScannerTabs.tsx — Unified Action Lane
 "use client"
 
 import React, { useState, useEffect } from "react"
@@ -34,7 +34,14 @@ export default function ScannerTabs({ onAnalyze }: ScannerTabsProps) {
   const [progress, setProgress] = useState(0)
   const [step, setStep] = useState(0)
 
-  // Auto-trigger OCR when an image is selected
+  // Reset internal tracking states whenever high-level modes switch
+  useEffect(() => {
+    setOcrText('')
+    setShowOcrEditor(false)
+    setOcrError('')
+  }, [mode])
+
+  // Process selected images and trigger initial text extraction layer
   const handleImageSelect = async (base64: string, mime: string) => {
     setImageBase64(base64)
     setImageMimeType(mime)
@@ -60,8 +67,8 @@ export default function ScannerTabs({ onAnalyze }: ScannerTabsProps) {
       setShowOcrEditor(true)
     } catch (err: any) {
       console.error('OCR error:', err)
-      setOcrError(err.message || 'Could not extract text from image. You can type the ingredients manually below.')
-      setShowOcrEditor(true) // Still show editor so user can type manually
+      setOcrError(err.message || 'Could not extract text from image. You can type details manually below.')
+      setShowOcrEditor(true) 
     } finally {
       setIsOcrLoading(false)
     }
@@ -75,7 +82,7 @@ export default function ScannerTabs({ onAnalyze }: ScannerTabsProps) {
     setOcrError('')
   }
 
-  // Progress animation effect
+  // Progress loading sequence engine
   useEffect(() => {
     let interval: NodeJS.Timeout;
     if (isLoading) {
@@ -91,30 +98,15 @@ export default function ScannerTabs({ onAnalyze }: ScannerTabsProps) {
     return () => clearInterval(interval);
   }, [isLoading, step]);
 
-  const canSubmitImage = mode === 'image' && imageBase64 && !isOcrLoading
-  const canSubmitManual = mode === 'manual' && manualText.length >= 20
-
   const handleAnalyze = async () => {
-    if (mode === 'image') {
-      if (!imageBase64) {
-        alert('Please upload an image first.')
-        return
-      }
-      if (isOcrLoading) {
-        alert('Please wait for the label extraction to complete.')
-        return
-      }
+    if (mode === 'image' && !imageBase64) {
+      alert('Please upload an image first.')
+      return
     }
 
-    if (mode === 'manual') {
-      if (!manualText) {
-        alert('Please enter ingredient text.')
-        return
-      }
-      if (manualText.length < 20) {
-        alert('Please enter at least 20 characters for a reliable analysis.')
-        return
-      }
+    if (mode === 'manual' && (!manualText || manualText.length < 20)) {
+      alert('Please enter at least 20 characters for a reliable analysis.')
+      return
     }
 
     setIsLoading(true)
@@ -129,14 +121,11 @@ export default function ScannerTabs({ onAnalyze }: ScannerTabsProps) {
     }, 4000);
 
     try {
-      // For image mode: use OCR text (which user may have edited) as manualText
-      // The backend analyze route uses manualText if provided with mode=image
       const analysisInput: ScanInput = mode === 'image'
         ? {
             mode: 'image',
             imageBase64,
             imageMimeType,
-            // Pass the (possibly edited) OCR text as manualText so backend skips re-OCR
             manualText: ocrText || undefined,
             productName: productName || undefined
           }
@@ -181,16 +170,15 @@ export default function ScannerTabs({ onAnalyze }: ScannerTabsProps) {
             showOcrEditor={showOcrEditor}
           />
 
-          {/* Manual Checking / Review Form — shown after OCR completes */}
+          {/* Verification Workspace Component Panel */}
           {showOcrEditor && (
             <div className="w-full max-w-2xl mx-auto space-y-5 animate-fade-in">
-              {/* Header */}
               <div className="flex items-center gap-3 p-4 rounded-2xl border border-emerald-200 bg-emerald-50">
                 {ocrError ? (
                   <>
                     <AlertTriangle className="h-5 w-5 text-amber-500 shrink-0" />
                     <div>
-                      <p className="text-sm font-bold text-amber-700">OCR Partial — Manual Review Required</p>
+                      <p className="text-sm font-bold text-amber-700">Scan Notice — Verification Path Enabled</p>
                       <p className="text-xs text-amber-600 mt-0.5">{ocrError}</p>
                     </div>
                   </>
@@ -198,14 +186,13 @@ export default function ScannerTabs({ onAnalyze }: ScannerTabsProps) {
                   <>
                     <CheckCircle2 className="h-5 w-5 text-emerald-600 shrink-0" />
                     <div>
-                      <p className="text-sm font-bold text-emerald-700">Label extracted successfully!</p>
-                      <p className="text-xs text-emerald-600 mt-0.5">Review and correct the extracted text before scanning.</p>
+                      <p className="text-sm font-bold text-emerald-700">Label text extracted successfully!</p>
+                      <p className="text-xs text-emerald-600 mt-0.5">Review, verify, or adjust the context text content window below before running analytics.</p>
                     </div>
                   </>
                 )}
               </div>
 
-              {/* Product Name */}
               <div className="space-y-2">
                 <label htmlFor="ocr-product-name" className="text-sm font-semibold flex items-center gap-2">
                   <Sparkles className="h-4 w-4 text-primary" />
@@ -216,17 +203,16 @@ export default function ScannerTabs({ onAnalyze }: ScannerTabsProps) {
                   type="text"
                   value={productName}
                   onChange={(e) => setProductName(e.target.value)}
-                  placeholder="e.g., Maggi Masala Noodles"
+                  placeholder="e.g., Masala Munch Snacks"
                   className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all bg-white"
                 />
               </div>
 
-              {/* OCR Text Editor — Manual Checking Procedure */}
               <div className="space-y-2">
                 <div className="flex justify-between items-center">
                   <label htmlFor="ocr-text-editor" className="text-sm font-semibold flex items-center gap-2">
                     <Edit3 className="h-4 w-4 text-primary" />
-                    Extracted Label Text — Verify &amp; Correct
+                    Extracted Content Data — Review &amp; Verify
                   </label>
                   <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${ocrText.length >= 20 ? 'bg-green-100 text-green-700' : 'bg-slate-100 text-slate-500'}`}>
                     {ocrText.length} chars
@@ -236,15 +222,9 @@ export default function ScannerTabs({ onAnalyze }: ScannerTabsProps) {
                   id="ocr-text-editor"
                   value={ocrText}
                   onChange={(e) => setOcrText(e.target.value)}
-                  placeholder={ocrError
-                    ? "OCR extraction failed. Please type or paste the ingredients list from the label manually..."
-                    : "Extracted text will appear here. Edit to correct any mistakes..."}
+                  placeholder="Extracted data markers will show up here. Add items or fix text manually..."
                   className="w-full min-h-[250px] px-4 py-3 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all bg-white resize-y font-mono text-sm"
                 />
-                <p className="text-[11px] text-muted-foreground flex items-start gap-1.5 mt-1">
-                  <span className="text-primary font-bold shrink-0">Tip:</span>
-                  Check ingredient order, E-codes (E621, E102...), nutrition values, and FSSAI license number. Accurate text gives more precise safety scores.
-                </p>
               </div>
             </div>
           )}
@@ -252,7 +232,6 @@ export default function ScannerTabs({ onAnalyze }: ScannerTabsProps) {
 
         {/* ── MANUAL TAB ── */}
         <TabsContent value="manual">
-          {/* Product name for manual tab */}
           <div className="w-full max-w-2xl mx-auto space-y-4 mb-4">
             <div className="space-y-2">
               <label htmlFor="manual-product-name" className="text-sm font-semibold flex items-center gap-2">
@@ -264,7 +243,7 @@ export default function ScannerTabs({ onAnalyze }: ScannerTabsProps) {
                 type="text"
                 value={productName}
                 onChange={(e) => setProductName(e.target.value)}
-                placeholder="e.g., Maggi Masala Noodles"
+                placeholder="Enter item name..."
                 className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all bg-white"
               />
             </div>
@@ -278,7 +257,7 @@ export default function ScannerTabs({ onAnalyze }: ScannerTabsProps) {
         </TabsContent>
       </Tabs>
 
-      {/* Analyse Button */}
+      {/* Unified Action Launch Point */}
       <div className="flex flex-col items-center gap-4 py-8 border-t">
         <Button
           id="scan-analyze-btn"
@@ -287,25 +266,20 @@ export default function ScannerTabs({ onAnalyze }: ScannerTabsProps) {
             isLoading ||
             isOcrLoading ||
             (mode === 'image' && !imageBase64) ||
-            (mode === 'image' && showOcrEditor && ocrText.length < 5) ||
+            (mode === 'image' && showOcrEditor && ocrText.length < 3) ||
             (mode === 'manual' && manualText.length < 20)
           }
           size="lg"
-          className="h-16 px-12 text-xl font-bold rounded-full shadow-xl hover:shadow-2xl hover:scale-[1.02] transition-all bg-primary w-full max-w-md"
+          className="h-16 px-12 text-xl font-bold rounded-full shadow-xl hover:shadow-2xl hover:scale-[1.02] transition-all bg-primary w-full max-w-md text-white"
         >
           {isLoading
             ? "Processing..."
             : isOcrLoading
-              ? "Extracting label..."
+              ? "Extracting..."
               : mode === 'image' && !imageBase64
                 ? "Upload an image to scan"
-                : "Scan & Analyze Safety"}
+                : "Scan Here"}
         </Button>
-        {mode === 'image' && showOcrEditor && ocrText.length > 0 && (
-          <p className="text-xs text-muted-foreground text-center">
-            Review the extracted label text above before scanning
-          </p>
-        )}
       </div>
     </div>
   )

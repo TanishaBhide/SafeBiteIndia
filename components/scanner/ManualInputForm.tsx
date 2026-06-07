@@ -42,15 +42,16 @@ export default function ManualInputForm({ text, setText, productName, setProduct
             {text.length} characters
           </span>
         </div>
-        <textarea
-          id="manualText"
-          value={text}
-          onChange={(e) => setText(e.target.value)}
-          placeholder="Paste or type the ingredients exactly as shown on the label..."
-          className={`w-full min-h-[250px] px-4 py-3 rounded-xl border transition-all bg-white resize-y focus:outline-none focus:ring-2 focus:ring-primary/20 ${
-            isTooShort ? 'border-amber-400' : 'border-slate-200 focus:border-primary'
-          }`}
-        />
+                  <p className="text-xs text-muted-foreground mt-1">You can also type meal names (e.g., “dosa”, “paratha", "idli") – the system will infer nutrition automatically.</p>
+          <textarea
+            id="manualText"
+            value={text}
+            onChange={(e) => setText(e.target.value)}
+            placeholder="Paste or type the ingredients exactly as shown on the label..."
+            className={`w-full min-h-[250px] px-4 py-3 rounded-xl border transition-all bg-white resize-y focus:outline-none focus:ring-2 focus:ring-primary/20 ${
+              isTooShort ? 'border-amber-400' : 'border-slate-200 focus:border-primary'
+            }`}
+          ></textarea>
         {isTooShort && (
           <p className="text-amber-600 text-xs flex items-center gap-1 mt-1">
             <AlertCircle className="h-3 w-3" />
