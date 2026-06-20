@@ -12,7 +12,9 @@ import {
   ChevronRight,
   Printer,
   Share2,
-  Info
+  Info,
+  ShieldX,
+  Skull
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Progress } from "@/components/ui/progress"
@@ -21,6 +23,7 @@ import { AnalysisResult } from "@/lib/types"
 import ECodeChip from "@/components/results/ECodeChip"
 import RegulatoryPanel from "@/components/results/RegulatoryPanel"
 import NutritionTable from "@/components/results/NutritionTable"
+import SmartSwapsPanel from "@/components/results/SmartSwapsPanel"
 import { cn } from "@/lib/utils"
 
 export default function ResultsPage() {
@@ -74,6 +77,39 @@ export default function ResultsPage() {
       </div>
 
       <main className="container px-4 py-8 space-y-12 max-w-5xl">
+
+        {/* ── SPOILAGE DANGER BANNER (top priority) ── */}
+        {result.isSpoiled && (
+          <div
+            className="relative overflow-hidden rounded-[32px] border-2 border-red-500 bg-gradient-to-br from-red-950 via-red-900 to-rose-950 p-8 shadow-2xl shadow-red-900/40"
+            role="alert"
+            aria-live="assertive"
+          >
+            <div className="absolute inset-0 bg-red-500/10 animate-pulse rounded-[32px]" />
+            <div className="relative flex flex-col md:flex-row gap-6 items-start md:items-center">
+              <div className="w-16 h-16 rounded-3xl bg-red-500 flex items-center justify-center shrink-0 shadow-lg shadow-red-500/50">
+                <ShieldX className="h-8 w-8 text-white" />
+              </div>
+              <div className="flex-1 space-y-3">
+                <div>
+                  <p className="text-xs font-black uppercase tracking-widest text-red-400">⚠ Critical Food Safety Warning</p>
+                  <h2 className="text-2xl font-black text-white">This Food Is UNSAFE to Consume</h2>
+                </div>
+                <p className="text-sm text-red-200 leading-relaxed border-l-2 border-red-500 pl-4">
+                  {result.spoilageWarning || 'Visible signs of spoilage, fungal contamination, or advanced decay were detected in this food item. Consuming it poses serious health risks including food poisoning, mycotoxin exposure, and gastrointestinal illness.'}
+                </p>
+                <div className="flex flex-wrap gap-2 pt-1">
+                  {['Discard Immediately', 'Do Not Consume', 'Wash Hands After Handling', 'Check Surrounding Items'].map(tip => (
+                    <span key={tip} className="text-[10px] font-bold bg-red-500/20 border border-red-500/30 text-red-300 px-3 py-1.5 rounded-full">
+                      <Skull className="h-3 w-3 inline mr-1" />{tip}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* Hero Score Section */}
         <div className="bg-white rounded-[40px] p-8 md:p-12 shadow-sm border border-slate-100 flex flex-col md:flex-row gap-12 items-center">
           <div className="relative w-64 h-64 shrink-0 flex items-center justify-center">
@@ -285,6 +321,13 @@ export default function ResultsPage() {
             </div>
           </div>
         </div>
+
+        {/* Smart Ingredient Swaps */}
+        {result.healthierSwaps && result.healthierSwaps.length > 0 && (
+          <div className="bg-slate-900 rounded-[40px] p-8 md:p-12">
+            <SmartSwapsPanel swaps={result.healthierSwaps} />
+          </div>
+        )}
 
         {/* Final Notes */}
         <div className="flex flex-col md:flex-row gap-8">

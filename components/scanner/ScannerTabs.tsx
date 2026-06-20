@@ -3,7 +3,7 @@
 
 import React, { useState, useEffect } from "react"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Scan, Type, CheckCircle2, AlertTriangle, Edit3, Sparkles } from "lucide-react"
+import { Scan, Type, CheckCircle2, AlertTriangle, Edit3, Sparkles, Skull, ShieldX } from "lucide-react"
 import ImageUploader from "./ImageUploader"
 import ManualInputForm from "./ManualInputForm"
 import { Button } from "@/components/ui/button"
@@ -11,7 +11,7 @@ import { ScanInput } from "@/lib/types"
 import LoadingOverlay from "./LoadingOverlay"
 
 interface ScannerTabsProps {
-  onAnalyze: (input: ScanInput) => Promise<void>
+  onAnalyze: (input: ScanInput & { isSpoiled?: boolean; spoilageWarning?: string }) => Promise<void>
 }
 
 export default function ScannerTabs({ onAnalyze }: ScannerTabsProps) {
@@ -24,6 +24,14 @@ export default function ScannerTabs({ onAnalyze }: ScannerTabsProps) {
   const [ocrText, setOcrText] = useState<string>('')
   const [showOcrEditor, setShowOcrEditor] = useState(false)
   const [ocrError, setOcrError] = useState<string>('')
+
+  // Spoilage detection state
+  const [spoilageResult, setSpoilageResult] = useState<{
+    isSpoiled: boolean;
+    confidence: string;
+    spoilageType: string;
+    warningMessage: string;
+  } | null>(null)
 
   // Manual mode state
   const [manualText, setManualText] = useState<string>('')
@@ -39,6 +47,7 @@ export default function ScannerTabs({ onAnalyze }: ScannerTabsProps) {
     setOcrText('')
     setShowOcrEditor(false)
     setOcrError('')
+    setSpoilageResult(null)
   }, [mode])
 
   // Process selected images and trigger initial text extraction layer
@@ -63,6 +72,11 @@ export default function ScannerTabs({ onAnalyze }: ScannerTabsProps) {
         throw new Error(data.error || 'OCR failed')
       }
 
+      // Handle spoilage detection result
+      if (data.spoilageResult) {
+        setSpoilageResult(data.spoilageResult)
+      }
+
       setOcrText(data.extractedText || '')
       setShowOcrEditor(true)
     } catch (err: any) {
@@ -80,6 +94,7 @@ export default function ScannerTabs({ onAnalyze }: ScannerTabsProps) {
     setOcrText('')
     setShowOcrEditor(false)
     setOcrError('')
+    setSpoilageResult(null)
   }
 
   // Progress loading sequence engine
@@ -121,18 +136,20 @@ export default function ScannerTabs({ onAnalyze }: ScannerTabsProps) {
     }, 4000);
 
     try {
-      const analysisInput: ScanInput = mode === 'image'
+      const analysisInput = mode === 'image'
         ? {
-            mode: 'image',
+            mode: 'image' as const,
             imageBase64,
             imageMimeType,
             manualText: ocrText || undefined,
-            productName: productName || undefined
+            productName: productName || undefined,
+            isSpoiled: spoilageResult?.isSpoiled || false,
+            spoilageWarning: spoilageResult?.warningMessage || '',
           }
         : {
-            mode: 'manual',
+            mode: 'manual' as const,
             manualText,
-            productName: productName || undefined
+            productName: productName || undefined,
           }
 
       await onAnalyze(analysisInput)
@@ -147,9 +164,65 @@ export default function ScannerTabs({ onAnalyze }: ScannerTabsProps) {
     }
   }
 
+  const spoilageTypeLabels: Record<string, string> = {
+    fungal_mould: 'Fungal Mould / Mycotoxin Contamination',
+    rot_decay: 'Rot & Putrefactive Decay',
+    expired_packaging: 'Expired / Past Best-Before Date',
+    contamination: 'Foreign Contamination Detected',
+    none: 'No Spoilage'
+  }
+
   return (
     <div className="space-y-8 animate-fade-in relative">
       {isLoading && <LoadingOverlay progress={progress} step={step} />}
+
+      {/* ── SPOILAGE DANGER BANNER ── */}
+      {spoilageResult?.isSpoiled && (
+        <div className="w-full max-w-2xl mx-auto animate-fade-in">
+          <div
+            className="relative overflow-hidden rounded-3xl border-2 border-red-500 bg-gradient-to-br from-red-950 via-red-900 to-rose-950 p-6 shadow-2xl shadow-red-900/50"
+            role="alert"
+            aria-live="assertive"
+          >
+            {/* Pulsing background glow */}
+            <div className="absolute inset-0 bg-red-500/10 animate-pulse rounded-3xl" />
+            
+            <div className="relative flex flex-col gap-4">
+              {/* Header */}
+              <div className="flex items-center gap-3">
+                <div className="w-12 h-12 rounded-2xl bg-red-500 flex items-center justify-center shrink-0 shadow-lg shadow-red-500/50">
+                  <ShieldX className="h-6 w-6 text-white" />
+                </div>
+                <div>
+                  <p className="text-xs font-black uppercase tracking-widest text-red-400">⚠ FOOD SAFETY HAZARD DETECTED</p>
+                  <h3 className="text-xl font-black text-white leading-tight">DO NOT CONSUME THIS FOOD</h3>
+                </div>
+              </div>
+
+              {/* Spoilage type badge */}
+              <div className="inline-flex items-center gap-2 bg-red-500/20 border border-red-500/40 text-red-300 text-xs font-bold px-4 py-2 rounded-full w-fit">
+                <Skull className="h-3.5 w-3.5" />
+                {spoilageTypeLabels[spoilageResult.spoilageType] || 'Spoilage Detected'}
+                <span className="ml-1 opacity-60">· {spoilageResult.confidence} confidence</span>
+              </div>
+
+              {/* Warning message */}
+              <p className="text-sm text-red-200 leading-relaxed font-medium border-l-2 border-red-500 pl-4">
+                {spoilageResult.warningMessage || 'This food item shows clear signs of spoilage. Consuming it may cause food poisoning, mycotoxin exposure, or serious gastrointestinal illness. Discard immediately.'}
+              </p>
+
+              {/* Action chips */}
+              <div className="flex flex-wrap gap-2 pt-1">
+                {['Discard Immediately', 'Do Not Taste or Smell Closely', 'Wash Hands After Handling', 'Check Other Items in Batch'].map(tip => (
+                  <span key={tip} className="text-[10px] font-bold bg-red-500/20 border border-red-500/30 text-red-300 px-3 py-1.5 rounded-full">
+                    {tip}
+                  </span>
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       <Tabs defaultValue="image" onValueChange={(v) => { setMode(v as any); }} className="w-full">
         <TabsList className="grid w-full max-w-md mx-auto grid-cols-2 mb-8 h-14 bg-slate-100 p-1.5 rounded-2xl">

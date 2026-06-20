@@ -11,6 +11,8 @@ export async function POST(request: Request) {
     const textToAnalyze = body.text || body.manualText;
     const image = body.image || body.imageBase64;
     const mimeType = body.mimeType || body.imageMimeType;
+    const isSpoiledFromScan = body.isSpoiled || false;
+    const spoilageWarningFromScan = body.spoilageWarning || '';
 
     // --- STREAM 1: PACKAGED FOOD SAFETY ANALYSIS (via Manual OCR Verification Text) ---
     // Evaluates textToAnalyze so it won't crash when using your manual text editor payload
@@ -37,6 +39,17 @@ export async function POST(request: Request) {
               1. If the item is high in refined sugars, palm oil, hydrogenated fats, high-fructose corn syrup, or high sodium (e.g., Nutella, potato chips, bingo, cheetos, commercial ice cream, chocolate spreads), the 'overallScore' MUST be penalized severely. It CANNOT score higher than 45 under any circumstances (assigning it an 'average' or 'poor' overallLevel based on specific additive/nutritional severity).
               2. Commercial ice creams, spreads, and snacks are NOT wholesome foods. They are calorie-dense, ultra-processed junk foods. Flag them as high-risk nutritional options.
               3. You MUST extract or accurately estimate raw NUMERIC values for the 'nutritionFacts' object based on standard 100g industry references for that product class. Do NOT include units, letters, or text strings like 'g', 'kcal', or 'mg' inside the nutrition values. They must be raw JSON numbers.
+              4. HEALTHIER SWAPS (CRITICAL): For every unhealthy ingredient found, generate a specific Indian-context swap. Examples:
+                 - Refined oil → Cold-pressed coconut/sesame/groundnut oil
+                 - Refined wheat flour (Maida) → Whole wheat atta, jowar, or ragi flour
+                 - White rice → Foxtail millet (Kangni), Barnyard millet, or brown rice
+                 - White sugar → Jaggery (Gur), Mishri, or date syrup
+                 - Refined salt → Rock salt (Sendha namak) or Himalayan pink salt
+                 - Artificial sweeteners → Stevia or raw honey
+                 - Processed cheese → Homemade paneer or A2 cow milk curd
+                 - Packaged namkeen/chips → Roasted makhana, chana, or baked poha
+                 - Dalda/vanaspati → Cold-pressed A2 ghee or coconut oil
+                 - Soft drinks/soda → Nimbu pani, coconut water, or buttermilk (chaas)
 
               Return a valid JSON object matching this schema layout exactly:
               {
@@ -66,6 +79,20 @@ export async function POST(request: Request) {
                 ],
                 "recommendations": ["Actionable dietary warnings or cleaner advice."],
                 "alternatives": ["Healthier, less processed alternatives."],
+                "healthierSwaps": [
+                  {
+                    "original": "Refined sunflower oil",
+                    "swap": "Cold-pressed groundnut (peanut) oil",
+                    "reason": "Cold-pressed oils retain natural antioxidants and vitamin E without trans-fat formation from high-heat refining.",
+                    "category": "oils"
+                  },
+                  {
+                    "original": "Whole wheat bread",
+                    "swap": "Jowar (sorghum) or Bajra (pearl millet) roti",
+                    "reason": "Millets are gluten-free, higher in iron, magnesium, and fibre, with a lower glycaemic index than wheat.",
+                    "category": "grains"
+                  }
+                ],
                 "ethicsNotes": ["Environmental notes (e.g., impact of palm oil cultivation)."],
                 "confidence": "high",
                 "rawLabel": "Visual text processing loop output string.",
@@ -86,7 +113,14 @@ export async function POST(request: Request) {
         return NextResponse.json({ error: data.error?.message || "Groq analysis call failed" }, { status: response.status });
       }
 
-      return NextResponse.json(JSON.parse(data.choices[0].message.content));
+      const parsed = JSON.parse(data.choices[0].message.content);
+      
+      // Inject spoilage flags from the OCR scan step if provided
+      return NextResponse.json({
+        ...parsed,
+        isSpoiled: isSpoiledFromScan,
+        spoilageWarning: spoilageWarningFromScan,
+      });
     }
 
     // --- STREAM 2: MEAL / WHOLE FOOD VISION SCANNING & CALORIE PREDICTION ---

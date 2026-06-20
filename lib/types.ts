@@ -99,6 +99,17 @@ export interface AnalysisResult {
   productCategory: string;
   regulatoryFindings: string[];
   confidence: 'low' | 'high';
+  /** Whether this food item was flagged as spoiled/rotten during image scan */
+  isSpoiled?: boolean;
+  /** Human-readable spoilage warning if isSpoiled is true */
+  spoilageWarning?: string;
+  /** Curated healthier swap suggestions (e.g. cold-pressed oil vs refined) */
+  healthierSwaps?: Array<{
+    original: string;
+    swap: string;
+    reason: string;
+    category: 'oils' | 'grains' | 'sweeteners' | 'dairy' | 'snacks' | 'protein' | 'general';
+  }>;
 }
 
 /**

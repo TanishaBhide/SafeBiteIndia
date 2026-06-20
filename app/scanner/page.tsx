@@ -9,7 +9,7 @@ import { ScanInput, AnalysisResult } from "@/lib/types"
 export default function ScannerPage() {
   const router = useRouter()
 
-  const handleAnalyze = async (input: ScanInput) => {
+  const handleAnalyze = async (input: ScanInput & { isSpoiled?: boolean; spoilageWarning?: string }) => {
     try {
       const response = await fetch('/api/analyze', {
         method: 'POST',
@@ -26,7 +26,6 @@ export default function ScannerPage() {
       const result: AnalysisResult = await response.json()
       
       // Store result in sessionStorage to pass to results page
-      // Note: In a real app, you might use a proper state management or URL params if data is small
       sessionStorage.setItem('safebite_result', JSON.stringify(result))
       
       router.push('/results')

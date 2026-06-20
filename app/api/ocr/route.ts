@@ -1,4 +1,4 @@
-// SafeBite India — app/api/ocr/route.ts — AI OCR Route
+// SafeBite India — app/api/ocr/route.ts — AI OCR + Spoilage Detection Route
 import { NextRequest, NextResponse } from "next/server"
 import Groq from "groq-sdk"
 
@@ -6,13 +6,34 @@ const groq = new Groq({
   apiKey: process.env.GROQ_API_KEY || "",
 })
 
-const OCR_SYSTEM_PROMPT = `You are a specialized OCR and visual recognition engine for food analysis. 
+const OCR_SYSTEM_PROMPT = `You are a specialized OCR, visual recognition, and food safety engine.
 
-DIRECTIONS:
-1. IF THE IMAGE IS A PACKAGED FOOD LABEL: Extract ALL visible text exactly as printed. Include product name, ingredients list, nutrition facts table (all values), FSSAI license number, allergen declarations, additive codes (E-numbers), net weight, and manufacturer. Preserve structural line breaks.
-2. IF THE IMAGE IS A COOKED MEAL, FRESH FRUIT, OR VEGETABLE: Describe the items present on the plate or tray concisely (e.g., "Plate containing cooked rice, dal, and stir-fried vegetables" or "A whole fresh avocado"). Do not search for non-existent text elements like labels or E-codes.
+TASK 1 — TEXT EXTRACTION:
+- PACKAGED FOOD: Extract all visible text exactly as printed.
+- COOKED MEAL / FRESH FOOD: Describe the items present concisely. Do not hallucinate labels.
 
-Output as clean, plain text without editorial meta-commentary.`
+TASK 2 — SPOILAGE DETECTION:
+Examine the image for fungal mould, rot, decay, discolouration, or visible expiry. 
+
+OUTPUT FORMAT:
+Do NOT output JSON. You must output exactly four lines in the following plain-text format:
+
+TEXT: [Extracted text or meal description]
+SPOILED: [true or false]
+TYPE: [fungal_mould, rot_decay, expired_packaging, contamination, or none]
+WARNING: [Warning message if spoiled, otherwise leave blank]
+
+EXAMPLE 1 (Fresh Food):
+TEXT: A bowl of fresh cooked white rice.
+SPOILED: false
+TYPE: none
+WARNING: 
+
+EXAMPLE 2 (Spoiled Food):
+TEXT: A plate of rice with green patches.
+SPOILED: true
+TYPE: fungal_mould
+WARNING: Visible mould growth detected. Do not consume.`
 
 export async function POST(req: NextRequest) {
   try {
@@ -32,14 +53,15 @@ export async function POST(req: NextRequest) {
       )
     }
 
+    // Call Groq API without JSON mode — this prevents 400 JSON validation errors
     const ocrResponse = await groq.chat.completions.create({
-      model: "meta-llama/llama-4-scout-17b-16e-instruct", // Upgraded vision model per implementation plan
+      model: "meta-llama/llama-4-scout-17b-16e-instruct",
       messages: [
         { role: "system", content: OCR_SYSTEM_PROMPT },
         {
           role: "user",
           content: [
-            { type: "text", text: "Process this food item image for extraction or identification." },
+            { type: "text", text: "Analyze this food image and output the 4 required lines." },
             {
               type: "image_url",
               image_url: { url: `data:${imageMimeType};base64,${imageBase64}` },
@@ -50,9 +72,33 @@ export async function POST(req: NextRequest) {
       temperature: 0.1,
     })
 
-    const extractedText = ocrResponse.choices[0]?.message?.content || ""
+    const rawContent = ocrResponse.choices[0]?.message?.content || ""
 
-    return NextResponse.json({ extractedText })
+    // Parse the plain text output robustly using RegEx
+    const textMatch = rawContent.match(/TEXT:\s*(.*)/i)
+    const spoiledMatch = rawContent.match(/SPOILED:\s*(true|false)/i)
+    const typeMatch = rawContent.match(/TYPE:\s*(.*)/i)
+    const warningMatch = rawContent.match(/WARNING:\s*(.*)/i)
+
+    const isSpoiledStr = spoiledMatch ? spoiledMatch[1].toLowerCase() : "false"
+    const isSpoiled = isSpoiledStr === "true"
+
+    let spoilageType = typeMatch ? typeMatch[1].trim() : "none"
+    const validTypes = ["fungal_mould", "rot_decay", "expired_packaging", "contamination", "none"]
+    if (!validTypes.includes(spoilageType)) spoilageType = "none"
+
+    const warningMessage = warningMatch ? warningMatch[1].trim() : ""
+
+    const extractedText = textMatch ? textMatch[1].trim() : rawContent.replace(/TEXT:|SPOILED:|TYPE:|WARNING:/gi, '').trim()
+
+    const spoilageResult = {
+      isSpoiled,
+      confidence: "high", // We enforce high confidence for this simplified structure
+      spoilageType,
+      warningMessage: isSpoiled ? warningMessage : "",
+    }
+
+    return NextResponse.json({ extractedText, spoilageResult })
   } catch (error: any) {
     console.error("OCR API Route Error:", error)
     return NextResponse.json(
