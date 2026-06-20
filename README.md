@@ -9,66 +9,74 @@ A smart web tool that helps consumers make safer and informed food choices by sc
 
 **SafeBite India** is developed as part of the **Biosafety Standards and Ethics** course. It combines food safety standards, biosafety guidelines, HACCP principles, and ethical considerations into one easy-to-use web application.
 
-**Live Demo**:[vercel link]
+* **Live Demo:** [safebiteindia.onrender.com](https://safebiteindia.onrender.com)
 
 ---
 
 ## ✨ Key Features
 
-### Core Features
-- **Smart Label Analyzer** — Photo upload + manual ingredient input
-- **Traffic Light Rating System** — Overall score (Good 🟢 / Moderate 🟡 / Poor 🔴)
-- **Multi-Criteria Scoring Engine**:
-  - Nutritional Profile
-  - Additives & Preservatives (FSSAI standards)
-  - Allergen Detection
-  - Processing & Packaging Analysis
-  - Biosafety & GMO Flags
-  - Ethics & Sustainability Indicators
-- **Detailed Explanations** with improvement suggestions
-- **Educational Learn Section** covering complete syllabus (Unit I to V)
+### 🟢 Core Features
+* **Smart Label Analyzer** — Photo upload + manual ingredient input.
+* **Rating System** — Overall safety score (Good 🟢 / Moderate 🟡 / Poor 🔴).
+* **Multi-Criteria Scoring Engine:**
+    * Nutritional Profile
+    * Additives & Preservatives (FSSAI standards)
+    * Allergen Detection
+    * Detection of moldy food and spoilage detection
+    * Processing & Packaging Analysis
+    * Biosafety & GMO Flags
+    * Ethics & Sustainability Indicators
+* **Detailed Explanations** with actionable improvement suggestions.
+* **Educational Learn Section** covering the complete course syllabus (Unit I to V).
 
-###  Additional Features
-- [ ] User preference filters (Vegetarian, Allergies, etc.)
-- [ ] Product alternatives suggestions
-- [ ] Scan History (saved in browser)
-- [ ] Responsive Web Design (works great on mobile)
-- [ ] Syllabus-to-Feature Mapping
+### 🟡 Additional Features
+* [ ] User preference filters (Vegetarian, Allergies, etc.)
+* [ ] Healthy product alternative suggestions
+* [ ] Scan History (saved locally in the browser)
+* [ ] Responsive Web Design (optimized for mobile use)
+* [ ] Syllabus-to-Feature Mapping
+
+---
+
+## 🛠️ Tech Stack
+
+* **Frontend:** Next.js 15 + React + TypeScript
+* **Styling:** Tailwind CSS
+* **UI Components:** Shadcn/ui
+* **Development Tool:** Google Antigravity (Agentic AI IDE)
+* **Deployment:** Render
 
 ---
 
-##  Tech Stack
+## 📊 Methodology
 
-- **Frontend**: Next.js 15 + React + TypeScript
-- **Styling**: Tailwind CSS
-- **UI Components**: Shadcn/ui
-- **Development Tool**: Google Antigravity (Agentic AI IDE)
-- **Deployment**: Vercel
+* **Rapid Prototyping:** Agile development iterations.
+* **Syllabus-Driven Development:** Directly aligning features with educational biosafety standards.
+* **Intelligent Scoring System:** A robust rule-based engine mapping ingredients to risk levels.
+* **User-Centric Design:** Focused on simple, accessible interfaces for Indian consumers.
 
 ---
-## Methodology
 
-- Rapid prototyping <br>
-- Syllabus-driven development<br>
-- Rule-based intelligent scoring system<br>
-- User-centric design focused on Indian consumers<br>
+## 🔮 Future Enhancements
 
+* [ ] Real-time OCR & Barcode scanning
+* [ ] Interactive AI Chatbot for quick food safety queries
+* [ ] Direct integration with the FSSAI database
+* [ ] User accounts & secure cloud storage features
 
-## Future Enhancements
-
-- [ ] Real-time OCR & Barcode scanning<br>
-- [ ] AI Chatbot for food safety queries<br>
-- [ ] Integration with FSSAI database<br>
-- [ ] PWA (Progressive Web App) support<br>
-- [ ] User accounts & cloud features<br>
+---
 
 ## 🚀 How to Run Locally
 
 ```bash
+# Clone the repository
 git clone <repo-url>
-cd safebite-india
-npm install
-npm run dev
-```
 
-Made with ❤️ for better food safety awareness in India
+# Navigate into the project directory
+cd safebite-india
+
+# Install dependencies
+npm install
+
+# Start the development server
+npm run dev

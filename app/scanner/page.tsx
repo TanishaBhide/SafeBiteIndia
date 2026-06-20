@@ -24,10 +24,10 @@ export default function ScannerPage() {
       }
 
       const result: AnalysisResult = await response.json()
-      
+
       // Store result in sessionStorage to pass to results page
       sessionStorage.setItem('safebite_result', JSON.stringify(result))
-      
+
       router.push('/results')
     } catch (error) {
       console.error('Error during analysis:', error)
@@ -43,9 +43,9 @@ export default function ScannerPage() {
           Upload an image of the ingredient label or enter it manually to get a comprehensive safety and ethics report.
         </p>
       </div>
-      
+
       <ScannerTabs onAnalyze={handleAnalyze} />
-      
+
       <div className="mt-16 grid md:grid-cols-3 gap-8 text-center max-w-4xl mx-auto">
         <div className="space-y-2">
           <div className="text-xl font-bold text-primary">01. Scan</div>
