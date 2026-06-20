@@ -1,0 +1,40 @@
+# SafeBite India Dependencies
+# Note: This is a Next.js (Node/TypeScript) project, so packages are natively managed in package.json.
+# This file is provided as a quick reference of the core libraries used in this project.
+
+# Framework & Core UI
+next>=16.2.6
+react>=19.0.0
+react-dom>=19.0.0
+
+# Styling & Tailwind
+tailwindcss>=3.4.0
+autoprefixer>=10
+postcss>=8
+tailwind-merge>=2.3.0
+tailwindcss-animate>=1.0.7
+clsx>=2.1.1
+class-variance-authority>=0.7.0
+
+# Icons
+lucide-react>=0.400.0
+
+# API & SDKs
+groq-sdk>=0.7.0
+@anthropic-ai/sdk>=0.95.2
+
+# Radix UI Primitives (Headless Components)
+@radix-ui/react-progress>=1.1.8
+@radix-ui/react-scroll-area>=1.2.10
+@radix-ui/react-separator>=1.1.8
+@radix-ui/react-slot>=1.2.4
+@radix-ui/react-tabs>=1.1.13
+@radix-ui/react-tooltip>=1.2.8
+
+# Development Dependencies
+typescript>=5
+eslint>=8
+eslint-config-next==15.3.6
+@types/node>=20
+@types/react>=19
+@types/react-dom>=19
